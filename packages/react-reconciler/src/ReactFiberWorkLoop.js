@@ -980,6 +980,9 @@ export function scheduleUpdateOnFiber(
       }
     }
 
+    // 对于 scheduleUpdateOnFiber()，我们只需要关心这一行。
+    // 它确保如果有待处理的更新，则调度重新渲染。更新尚未被处理，因为实际的重新渲染还没有开始
+    // 实际重新渲染的开始取决于几个因素，例如事件的类别和调度器的状态。
     ensureRootIsScheduled(root);
     if (
       lane === SyncLane &&

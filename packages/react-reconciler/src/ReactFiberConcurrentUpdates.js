@@ -24,11 +24,23 @@ import { OffscreenVisible } from "./ReactFiberOffscreenComponent";
 // we wait until the current render is over (either finished or interrupted)
 // before adding it to the fiber/hook queue. Push to this array so we can
 // access the queue, fiber, update, et al later.
+// 如果渲染正在进行中，并且我们从一个并发事件接收到一个更新，
+// 我们会等到当前渲染结束（完成或中断）后
+// 再将其添加到 fiber/hook 队列中。推送到这个数组以便我们之后可以
+// 访问队列、fiber、更新等。
+
+/** 渲染过程修改 fiber 树会导致数据竞争，所以渲染过程中发生的更新会暂存在下面的数组中 */
 const concurrentQueues = [];
 let concurrentQueuesIndex = 0;
 
 let concurrentlyUpdatedLanes = NoLanes;
 
+/**
+ * 将暂存的更新放到 fiber 上
+ * 
+ * 这个函数在 prepareFreshStack() 内部被调用
+ * 它是重新渲染的初始步骤之一，这表明在实际重新渲染开始之前，所有的状态更新都被暂存了
+ */
 export function finishQueueingConcurrentUpdates() {
   const endIndex = concurrentQueuesIndex;
   concurrentQueuesIndex = 0;
@@ -86,6 +98,7 @@ function enqueueUpdate(
   // The fiber's `lane` field is used in some places to check if any work is
   // scheduled, to perform an eager bailout, so we need to update it immediately.
   // TODO: We should probably move this to the "shared" queue instead.
+  // 标记存在更新
   fiber.lanes = mergeLanes(fiber.lanes, lane);
   const alternate = fiber.alternate;
   if (alternate !== null) {
@@ -168,7 +181,7 @@ export function unsafe_markUpdateLaneFromFiberToRoot(
 }
 
 /**
- * 从当前 fiber 开始，一直向上到 root 更新 lance
+ * 从当前 fiber 开始，一直向上到 root 更新 lance 和 childLane
  */
 function markUpdateLaneFromFiberToRoot(
   sourceFiber,
@@ -178,6 +191,10 @@ function markUpdateLaneFromFiberToRoot(
   // Update the source fiber's lanes
   sourceFiber.lanes = mergeLanes(sourceFiber.lanes, lane);
   let alternate = sourceFiber.alternate;
+  // 注意，当前 fiber 和备用 fiber 的 lanes 都被更新了
+  // 记住我们提到过 dispatchSetState() 是绑定到源 fiber 的
+  // 所以当我们设置状态时，我们可能并不总是在更新当前的 fiber 树。
+  // 同时更新两者以确保一切正确，但这有副作用我们将在注意事项部分再次讨论这一点
   if (alternate !== null) {
     alternate.lanes = mergeLanes(alternate.lanes, lane);
   }

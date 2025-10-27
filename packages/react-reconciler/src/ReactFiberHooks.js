@@ -174,7 +174,10 @@ let currentlyRenderingFiber = null;
 // current hook list is the list that belongs to the current fiber. The
 // work-in-progress hook list is a new list that will be added to the
 // work-in-progress fiber.
+// hook 以链表的形式存储在 fiber 的 memorizedState 字段
+/** 当前 fiber 的 hook */
 let currentHook = null;
+/** wip fiber 的 hook  */
 let workInProgressHook = null;
 
 // Whether an update was scheduled at any point during the render phase. This
@@ -908,8 +911,11 @@ function updateWorkInProgressHook() {
   // render phase update. It assumes there is either a current hook we can
   // clone, or a work-in-progress hook from a previous render pass that we can
   // use as a base.
+  // 假设存在 currentHoot 或者上一次渲染的 wip hook
+  /** 上次渲染的对应 Hook */
   let nextCurrentHook;
-  if (currentHook === null) {
+  if (currentHook === null) { // 这是第一个 hook
+    // 从上次的 fiber 的 memoizedState 取第一个 hook
     const current = currentlyRenderingFiber.alternate;
     if (current !== null) {
       nextCurrentHook = current.memoizedState;
@@ -920,6 +926,7 @@ function updateWorkInProgressHook() {
     nextCurrentHook = currentHook.next;
   }
 
+  // 是否有可复用的 wip hook
   let nextWorkInProgressHook;
   if (workInProgressHook === null) {
     nextWorkInProgressHook = currentlyRenderingFiber.memoizedState;
@@ -927,6 +934,7 @@ function updateWorkInProgressHook() {
     nextWorkInProgressHook = workInProgressHook.next;
   }
 
+  // 复用
   if (nextWorkInProgressHook !== null) {
     // There's already a work-in-progress. Reuse it.
     workInProgressHook = nextWorkInProgressHook;
@@ -934,8 +942,8 @@ function updateWorkInProgressHook() {
 
     currentHook = nextCurrentHook;
   } else {
+    // 克隆
     // Clone from the current hook.
-
     if (nextCurrentHook === null) {
       const currentFiber = currentlyRenderingFiber.alternate;
       if (currentFiber === null) {
@@ -1198,6 +1206,7 @@ function updateReducer(
   initialArg,
   init,
 ) {
+  // 获取 mountState 中创建的 Hook
   const hook = updateWorkInProgressHook();
   return updateReducerImpl(hook, currentHook, reducer);
 }
@@ -1219,6 +1228,14 @@ function updateReducerImpl(
   queue.lastRenderedReducer = reducer;
 
   // The last rebase update that is NOT part of the base state.
+  // baseQueue 需要一些解释。
+  // 在最好的情况下，我们可以在更新被处理后丢弃它们。但是由于可能存在不同优先级的多个更新，
+  // 我们可能需要跳过一些更新稍后处理这就是为什么它们被存储在 baseQueue 中。
+  // 即使对于已处理的更新，为了确保最终状态正确，一旦一个更新被放入 baseQueue，
+  // 所有后续的更新也必须在那里，例如状态值是 1，
+  // 我们有 3 个更新：+1（低优先级）、*10（高优先级）、-2（低优先级）因为 *10 是高优先级，
+  // 我们处理它，1 * 10 = 10之后我们处理低优先级的更新，如果我们不把 *10 放入队列，
+  // 结果将是 1 + 1 - 2 = 0 但我们需要的是 (1 + 1) * 10 - 2。
   let baseQueue = hook.baseQueue;
 
   // The last pending update that hasn't been processed yet.
@@ -1794,6 +1811,7 @@ function forceStoreRerender(fiber) {
 }
 
 function mountStateImpl(initialState) {
+  // 创建一个新的 hook
   const hook = mountWorkInProgressHook();
   if (typeof initialState === "function") {
     const initialStateInitializer = initialState;
@@ -1828,6 +1846,7 @@ function mountState(
   const queue = hook.queue;
   const dispatch = dispatchSetState.bind(
     null,
+    // 绑定当前 fiber，作为第一个参数
     currentlyRenderingFiber,
     queue,
   );
@@ -3460,6 +3479,13 @@ function dispatchReducerAction(
   markUpdateInDevTools(fiber, lane, action);
 }
 
+/**
+ * setState 通过 dispatchSetState bind 生成
+ * 
+ * @param {*} fiber 调用 useState 的 fiber
+ * @param {*} queue useState 创建的 hook 的 queue
+ * @param {*} action setState 的参数
+ */
 function dispatchSetState(
   fiber,
   queue,
@@ -3506,10 +3532,15 @@ function dispatchSetStateInternal(
     next: (null),
   };
 
+  // 渲染期调用了 setState
   if (isRenderPhaseUpdate(fiber)) {
     enqueueRenderPhaseUpdate(queue, update);
   } else {
     const alternate = fiber.alternate;
+    // 这个条件检查是为了尽早进行 bailout（提前退出），这意味着如果设置相同的状态，则什么也不做。
+    // Bailout 意味着停止深入以跳过子树的重新渲染，它发生在重新渲染内部，这里是为了避免调度重新渲染，
+    // 所以是提前 bailout但这里的条件实际上是一个 hack，比需要的规则更严格，这意味着React 会尽力
+    // 避免调度重新渲染，但不保证
     if (
       fiber.lanes === NoLanes &&
       (alternate === null || alternate.lanes === NoLanes)
@@ -3540,6 +3571,7 @@ function dispatchSetStateInternal(
             // time the reducer has changed.
             // TODO: Do we still need to entangle transitions in this case?
             enqueueConcurrentHookUpdateAndEagerlyBailout(fiber, queue, update);
+            // 直接返回，不调度
             return false;
           }
         } catch (error) {

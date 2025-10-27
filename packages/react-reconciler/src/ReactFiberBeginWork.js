@@ -1444,6 +1444,7 @@ function updateFunctionComponent(
   if (enableSchedulingProfiler) {
     markComponentRenderStarted(workInProgress);
   }
+  // 先运行组件函数，再 reconcile children
   if (__DEV__) {
     nextChildren = renderWithHooks(
       current,
@@ -3661,6 +3662,9 @@ function resetSuspendedCurrentOnMountInLegacyMode(
   }
 }
 
+/**
+ * 在跳过当前 fiber 的 beginWork 任务时返回下一个 workInProgress
+ */
 function bailoutOnAlreadyFinishedWork(
   current,
   workInProgress,
@@ -3668,7 +3672,7 @@ function bailoutOnAlreadyFinishedWork(
 ) {
   if (current !== null) {
     // Reuse previous dependencies
-    workInProgress.dependencies = current.dependencies;
+    workInProgress.dependencies = current.dependencies; // 记录了组件对外部数据源的依赖，比如 context
   }
 
   if (enableProfilerTimer) {
@@ -3792,6 +3796,9 @@ function checkScheduledUpdateOrContext(
   return false;
 }
 
+/**
+ * 函数尝试在不需要时尽早停止渲染
+ */
 function attemptEarlyBailoutIfNoScheduledUpdate(
   current,
   workInProgress,
@@ -4043,6 +4050,7 @@ function beginWork(
   workInProgress,
   renderLanes,
 ) {
+  console.log('beginWork', workInProgress);
   if (__DEV__) {
     if (workInProgress._debugNeedsRemount && current !== null) {
       // This will restart the begin phase with a new fiber.

@@ -3507,6 +3507,7 @@ function commitPassiveMountOnFiber(
         );
       }
 
+      // 递归处理子 fiber
       recursivelyTraversePassiveMountEffects(
         finishedRoot,
         finishedWork,
@@ -4722,11 +4723,14 @@ function commitPassiveUnmountOnFiber(finishedWork) {
     case FunctionComponent:
     case ForwardRef:
     case SimpleMemoComponent: {
+      // 先递归卸载子 fiber 的effect
       recursivelyTraversePassiveUnmountEffects(finishedWork);
       if (finishedWork.flags & Passive) {
+        // 卸载当前 fiber 的 effect
         commitHookPassiveUnmountEffects(
           finishedWork,
           finishedWork.return,
+          // HookHasEffect 代表如果 deps 没有变的话，callback 不运行
           HookPassive | HookHasEffect,
         );
       }

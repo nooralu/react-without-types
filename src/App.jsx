@@ -1,18 +1,28 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
-export default function App() {
+function Link() {
+  return <a href="https://jser.dev">jser.dev</a>;
+}
+
+function Component() {
   const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    debugger;
-    setCount(count + 1);
-  }, []);
-
   return (
     <div>
-      <button onClick={() => setCount((count) => count + 1)}>
-        count is {count}
-      </button>
+      <button onClick={() =>
+        setCount((count) => count + 1)
+      }>
+        click me - {count}
+      </button> ({count % 2 === 0 ? <span>even</span> : <b>odd</b>})
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <div>
+      <Link />
+      <br />
+      <Component />
     </div>
   );
 }

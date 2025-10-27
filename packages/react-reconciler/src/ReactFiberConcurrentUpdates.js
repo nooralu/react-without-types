@@ -167,6 +167,9 @@ export function unsafe_markUpdateLaneFromFiberToRoot(
   return root;
 }
 
+/**
+ * 从当前 fiber 开始，一直向上到 root 更新 lance
+ */
 function markUpdateLaneFromFiberToRoot(
   sourceFiber,
   update,
@@ -183,6 +186,7 @@ function markUpdateLaneFromFiberToRoot(
   let parent = sourceFiber.return;
   let node = sourceFiber;
   while (parent !== null) {
+    // 向上更新
     parent.childLanes = mergeLanes(parent.childLanes, lane);
     alternate = parent.alternate;
     if (alternate !== null) {

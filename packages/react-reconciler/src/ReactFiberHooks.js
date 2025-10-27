@@ -2421,6 +2421,9 @@ function rerenderActionState(
   return [state, dispatch, false];
 }
 
+/**
+ * 创建 Effect 对象
+ */
 function pushSimpleEffect(
   tag,
   inst,
@@ -2428,11 +2431,18 @@ function pushSimpleEffect(
   deps,
 ) {
   const effect = {
+    // tag 很重要，用于标记此 effect 是否需要运行
     tag,
+    // 我们传入的回调函数
     create,
+    // 我们传入的依赖数组
     deps,
+    // 存储 destroy
+    // 之前直接是 destroy 字段，但是会导致 double free
+    // https://github.com/facebook/react/pull/26561
     inst,
-    // Circular
+    // Circular 是一个环链表
+    // 一个组件中可能有多个 effect，将它们链接起来
     next: (null),
   };
   return pushEffectImpl(effect);
@@ -2442,6 +2452,7 @@ function pushEffectImpl(effect) {
   let componentUpdateQueue = currentlyRenderingFiber.updateQueue;
   if (componentUpdateQueue === null) {
     componentUpdateQueue = createFunctionComponentUpdateQueue();
+    // effect 存储在 updateQueue 中
     currentlyRenderingFiber.updateQueue = componentUpdateQueue;
   }
   const lastEffect = componentUpdateQueue.lastEffect;
@@ -2478,10 +2489,13 @@ function mountEffectImpl(
   create,
   deps,
 ) {
+  // 创建一个 hook
   const hook = mountWorkInProgressHook();
   const nextDeps = deps === undefined ? null : deps;
   currentlyRenderingFiber.flags |= fiberFlags;
+  // pushEffect() 创建 Effect 对象，然后将其设置在 hook 上
   hook.memoizedState = pushSimpleEffect(
+    // HookHasEffect 代表 effect 需要绑定时运行
     HookHasEffect | hookFlags,
     createEffectInstance(),
     create,
@@ -2495,9 +2509,11 @@ function updateEffectImpl(
   create,
   deps,
 ) {
+  // 获取当前 hook
   const hook = updateWorkInProgressHook();
   const nextDeps = deps === undefined ? null : deps;
   const effect = hook.memoizedState;
+  // 存储 destroy
   const inst = effect.inst;
 
   // currentHook is null on initial mount when rerendering after a render phase
@@ -2506,7 +2522,9 @@ function updateEffectImpl(
     if (nextDeps !== null) {
       const prevEffect = currentHook.memoizedState;
       const prevDeps = prevEffect.deps;
-      // $FlowFixMe[incompatible-call] (@poteto)
+      // 如果依赖项没有改变，则除了重新创建 Effect 对象外什么也不做
+      // 这里需要重新创建可能是因为我们需要重新创建 updateQueue 并且我们需要获取更新后的 create()
+      // 同时使用之前的 inst.destory
       if (areHookInputsEqual(nextDeps, prevDeps)) {
         hook.memoizedState = pushSimpleEffect(
           hookFlags,
@@ -2522,6 +2540,7 @@ function updateEffectImpl(
   currentlyRenderingFiber.flags |= fiberFlags;
 
   hook.memoizedState = pushSimpleEffect(
+    // deps 改变了，用 HookHasEffect 标记 hook 需要重新运行
     HookHasEffect | hookFlags,
     inst,
     create,
@@ -2545,6 +2564,7 @@ function mountEffect(
     );
   } else {
     mountEffectImpl(
+      // 用于和 LayoutEffect 做区分
       PassiveEffect | PassiveStaticEffect,
       HookPassive,
       create,

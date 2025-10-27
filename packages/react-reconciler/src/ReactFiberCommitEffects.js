@@ -157,6 +157,7 @@ export function commitHookEffectListMount(
           } else {
             const create = effect.create;
             const inst = effect.inst;
+            // 运行 effect callback，获取清理函数
             destroy = create();
             inst.destroy = destroy;
           }
@@ -229,12 +230,16 @@ export function commitHookEffectListMount(
   }
 }
 
+/**
+ * 卸载当前 fiber 的所有 effect （一个环形列表）
+ */
 export function commitHookEffectListUnmount(
   flags,
   finishedWork,
   nearestMountedAncestor,
 ) {
   try {
+    // 从 fiber 的 updateQueue 拿到第一个 effect
     const updateQueue = finishedWork.updateQueue;
     const lastEffect = updateQueue !== null ? updateQueue.lastEffect : null;
     if (lastEffect !== null) {
@@ -242,9 +247,10 @@ export function commitHookEffectListUnmount(
       let effect = firstEffect;
       do {
         if ((effect.tag & flags) === flags) {
-          // Unmount
+          // 卸载
           const inst = effect.inst;
           const destroy = inst.destroy;
+          // effect 回调没有返回值
           if (destroy !== undefined) {
             inst.destroy = undefined;
             if (enableSchedulingProfiler) {
@@ -260,6 +266,7 @@ export function commitHookEffectListUnmount(
                 setIsRunningInsertionEffect(true);
               }
             }
+            // 调用 effect destroy
             safelyCallDestroy(finishedWork, nearestMountedAncestor, destroy);
             if (__DEV__) {
               if ((flags & HookInsertion) !== NoHookEffect) {
@@ -885,6 +892,13 @@ export function safelyDetachRef(
   }
 }
 
+/**
+ * 调用 effect destroy
+ * 
+ * 关于 resource 参数
+ * 
+ * https://github.com/facebook/react/commit/2c5fd26c
+ */
 function safelyCallDestroy(
   current,
   nearestMountedAncestor,

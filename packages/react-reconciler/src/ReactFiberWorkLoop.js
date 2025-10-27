@@ -777,9 +777,9 @@ export function requestUpdateLane(fiber) {
       if (transition.gesture) {
         throw new Error(
           "Cannot setState on regular state inside a startGestureTransition. " +
-            "Gestures can only update the useOptimistic() hook. There should be no " +
-            "side-effects associated with starting a Gesture until its Action is " +
-            "invoked. Move side-effects to the Action instead.",
+          "Gestures can only update the useOptimistic() hook. There should be no " +
+          "side-effects associated with starting a Gesture until its Action is " +
+          "invoked. Move side-effects to the Action instead.",
         );
       }
     }
@@ -1483,7 +1483,7 @@ function commitRootWhenReady(
   const isGestureTransition = enableGestureTransition && isGestureRender(lanes);
   const maySuspendCommit = subtreeFlags & ShouldSuspendCommit ||
     (subtreeFlags & BothVisibilityAndMaySuspendCommit) ===
-      BothVisibilityAndMaySuspendCommit;
+    BothVisibilityAndMaySuspendCommit;
   let suspendedState = null;
   if (isViewTransitionEligible || maySuspendCommit || isGestureTransition) {
     // Before committing, ask the renderer whether the host tree is ready.
@@ -1509,8 +1509,8 @@ function commitRootWhenReady(
     const timeoutOffset = includesOnlyRetries(lanes)
       ? globalMostRecentFallbackTime - now()
       : includesOnlyTransitions(lanes)
-      ? globalMostRecentTransitionTime - now()
-      : 0;
+        ? globalMostRecentTransitionTime - now()
+        : 0;
     // At the end, ask the renderer if it's ready to commit, or if we should
     // suspend. If it's not ready, it will return a callback to subscribe to
     // a ready event.
@@ -1950,8 +1950,8 @@ function prepareFreshStack(root, lanes) {
         clampedEventTime >= 0
           ? clampedEventTime
           : clampedUpdateTime >= 0
-          ? clampedUpdateTime
-          : renderStartTime;
+            ? clampedUpdateTime
+            : renderStartTime;
       if (gestureSuspendedTime >= 0) {
         setCurrentTrackFromLanes(GestureLane);
         logSuspendedWithDelayPhase(
@@ -1995,8 +1995,8 @@ function prepareFreshStack(root, lanes) {
         clampedEventTime >= 0
           ? clampedEventTime
           : clampedUpdateTime >= 0
-          ? clampedUpdateTime
-          : renderStartTime;
+            ? clampedUpdateTime
+            : renderStartTime;
       if (blockingSuspendedTime >= 0) {
         setCurrentTrackFromLanes(SyncLane);
         logSuspendedWithDelayPhase(
@@ -2051,8 +2051,8 @@ function prepareFreshStack(root, lanes) {
         clampedEventTime >= 0
           ? clampedEventTime
           : clampedUpdateTime >= 0
-          ? clampedUpdateTime
-          : renderStartTime;
+            ? clampedUpdateTime
+            : renderStartTime;
       if (transitionSuspendedTime >= 0) {
         setCurrentTrackFromLanes(SomeTransitionLane);
         logSuspendedWithDelayPhase(
@@ -2821,7 +2821,7 @@ function renderRootConcurrent(root, lanes) {
                 if (__DEV__) {
                   console.error(
                     "Unexpected type of fiber triggered a suspensey commit. " +
-                      "This is a bug in React.",
+                    "This is a bug in React.",
                   );
                 }
                 break;
@@ -2978,6 +2978,7 @@ function performUnitOfWork(unitOfWork) {
     }
   }
 
+  // beginWork 完成之后赋值 memoizedProps
   unitOfWork.memoizedProps = unitOfWork.pendingProps;
   if (next === null) {
     // If this doesn't spawn new work, complete the current work.
@@ -3227,6 +3228,7 @@ function panicOnRootError(root, error) {
 }
 
 function completeUnitOfWork(unitOfWork) {
+  console.log('completeWork', unitOfWork);
   // Attempt to complete the current unit of work, then move to the next
   // sibling. If there are no more siblings, return to the parent fiber.
   let completedWork = unitOfWork;
@@ -3455,7 +3457,7 @@ function commitRoot(
       if (lanes === NoLanes) {
         console.error(
           "finishedLanes should not be empty during a commit. This is a " +
-            "bug in React.",
+          "bug in React.",
         );
       }
     }
@@ -3464,7 +3466,7 @@ function commitRoot(
   if (finishedWork === root.current) {
     throw new Error(
       "Cannot commit the same tree as before. This error is likely caused by " +
-        "a bug in React. Please file an issue.",
+      "a bug in React. Please file an issue.",
     );
   }
 
@@ -3572,6 +3574,7 @@ function commitRoot(
     (enableProfilerTimer &&
       enableComponentPerformanceTrack &&
       finishedWork.actualDuration !== 0) ||
+    // 如果存在 passive effect，schedule 处理
     (finishedWork.subtreeFlags & passiveSubtreeMask) !== NoFlags ||
     (finishedWork.flags & passiveSubtreeMask) !== NoFlags
   ) {
@@ -3592,6 +3595,9 @@ function commitRoot(
         if (pendingDelayedCommitReason === IMMEDIATE_COMMIT) {
           pendingDelayedCommitReason = DELAYED_PASSIVE_COMMIT;
         }
+        // 这里刷新由 useEffect() 创建的被动 effect
+        // 这会在下一个时间片安排刷新，而不是立即执行更多信息请参考 React 调度器的工作原理
+        // https://jser.dev/react/2022/03/16/how-react-scheduler-works/#41-schedulecallback---scheduler-schedules-tasks-by-exipriationtime
         flushPassiveEffects();
         // This render triggered passive effects: release the root cache pool
         // *after* passive effects fire to avoid freeing a cache pool that may
@@ -3636,7 +3642,7 @@ function commitRoot(
   // Reconsider whether this is necessary.
   const subtreeHasBeforeMutationEffects =
     (finishedWork.subtreeFlags & (BeforeMutationMask | MutationMask)) !==
-      NoFlags;
+    NoFlags;
   const rootHasBeforeMutationEffect =
     (finishedWork.flags & (BeforeMutationMask | MutationMask)) !== NoFlags;
 
@@ -4344,8 +4350,8 @@ function makeErrorInfo(componentStack) {
       get() {
         console.error(
           'You are accessing "digest" from the errorInfo object passed to onRecoverableError.' +
-            " This property is no longer provided as part of errorInfo but can be accessed as a property" +
-            " of the Error instance itself.",
+          " This property is no longer provided as part of errorInfo but can be accessed as a property" +
+          " of the Error instance itself.",
         );
       },
     });
@@ -4386,9 +4392,9 @@ export function flushPendingEffects() {
         didWarnAboutInterruptedViewTransitions = true;
         console.warn(
           "A flushSync update cancelled a View Transition because it was called " +
-            "while the View Transition was still preparing. To preserve the synchronous " +
-            "semantics, React had to skip the View Transition. If you can, try to avoid " +
-            "flushSync() in a scenario that's likely to interfere.",
+          "while the View Transition was still preparing. To preserve the synchronous " +
+          "semantics, React had to skip the View Transition. If you can, try to avoid " +
+          "flushSync() in a scenario that's likely to interfere.",
         );
       }
     }
@@ -4404,6 +4410,12 @@ export function flushPendingEffects() {
   return flushPassiveEffects();
 }
 
+/**
+ * 这里刷新由 useEffect() 创建的被动 effect
+ * 这会在下一个时间片安排刷新，而不是立即执行更多信息请参考 React 调度器的工作原理
+ *
+ * https://jser.dev/react/2022/03/16/how-react-scheduler-works/#41-schedulecallback---scheduler-schedules-tasks-by-exipriationtime
+ */
 function flushPassiveEffects() {
   if (pendingEffectsStatus !== PENDING_PASSIVE_PHASE) {
     return false;
@@ -4433,7 +4445,6 @@ function flushPassiveEffects() {
   } finally {
     setCurrentUpdatePriority(previousPriority);
     ReactSharedInternals.T = prevTransition;
-
     // Once passive effects have run for the tree - giving components a
     // chance to retain cache instances they use - release the pooled
     // cache at the root (if there is one)
@@ -4501,7 +4512,9 @@ function flushPassiveEffectsImpl() {
   const prevExecutionContext = executionContext;
   executionContext |= CommitContext;
 
+  // 首先卸载 effect，一直递归子节点
   commitPassiveUnmountEffects(root.current);
+  // 执行 effect 
   commitPassiveMountEffects(
     root,
     root.current,
@@ -4674,10 +4687,10 @@ export function captureCommitPhaseError(
   if (__DEV__) {
     console.error(
       "Internal React error: Attempted to capture a commit phase error " +
-        "inside a detached tree. This indicates a bug in React. Potential " +
-        "causes include deleting the same fiber more than once, committing an " +
-        "already-finished tree, or an inconsistent return pointer.\n\n" +
-        "Error message:\n\n%s",
+      "inside a detached tree. This indicates a bug in React. Potential " +
+      "causes include deleting the same fiber more than once, committing an " +
+      "already-finished tree, or an inconsistent return pointer.\n\n" +
+      "Error message:\n\n%s",
       error,
     );
   }
@@ -4854,7 +4867,7 @@ export function resolveRetryWakeable(boundaryFiber, wakeable) {
     default:
       throw new Error(
         "Pinged unknown suspense boundary type. " +
-          "This is probably a bug in React.",
+        "This is probably a bug in React.",
       );
   }
 
@@ -4889,9 +4902,9 @@ export function throwIfInfiniteUpdateLoopDetected() {
 
     throw new Error(
       "Maximum update depth exceeded. This can happen when a component " +
-        "repeatedly calls setState inside componentWillUpdate or " +
-        "componentDidUpdate. React limits the number of nested updates to " +
-        "prevent infinite loops.",
+      "repeatedly calls setState inside componentWillUpdate or " +
+      "componentDidUpdate. React limits the number of nested updates to " +
+      "prevent infinite loops.",
     );
   }
 
@@ -4902,9 +4915,9 @@ export function throwIfInfiniteUpdateLoopDetected() {
 
       console.error(
         "Maximum update depth exceeded. This can happen when a component " +
-          "calls setState inside useEffect, but useEffect either doesn't " +
-          "have a dependency array, or one of the dependencies changes on " +
-          "every render.",
+        "calls setState inside useEffect, but useEffect either doesn't " +
+        "have a dependency array, or one of the dependencies changes on " +
+        "every render.",
       );
     }
   }
@@ -5115,9 +5128,9 @@ export function warnAboutUpdateOnNotYetMountedFiberInDEV(fiber) {
     runWithFiberInDEV(fiber, () => {
       console.error(
         "Can't perform a React state update on a component that hasn't mounted yet. " +
-          "This indicates that you have a side-effect in your render function that " +
-          "asynchronously tries to update the component. Move this work to " +
-          "useEffect instead.",
+        "This indicates that you have a side-effect in your render function that " +
+        "asynchronously tries to update the component. Move this work to " +
+        "useEffect instead.",
       );
     });
   }
@@ -5147,8 +5160,8 @@ function warnAboutRenderPhaseUpdatesInDEV(fiber) {
               "Unknown";
             console.error(
               "Cannot update a component (`%s`) while rendering a " +
-                "different component (`%s`). To locate the bad setState() call inside `%s`, " +
-                "follow the stack trace as described in https://react.dev/link/setstate-in-render",
+              "different component (`%s`). To locate the bad setState() call inside `%s`, " +
+              "follow the stack trace as described in https://react.dev/link/setstate-in-render",
               setStateComponentName,
               renderingComponentName,
               renderingComponentName,
@@ -5160,8 +5173,8 @@ function warnAboutRenderPhaseUpdatesInDEV(fiber) {
           if (!didWarnAboutUpdateInRender) {
             console.error(
               "Cannot update during an existing state transition (such as " +
-                "within `render`). Render methods should be a pure " +
-                "function of props and state.",
+              "within `render`). Render methods should be a pure " +
+              "function of props and state.",
             );
             didWarnAboutUpdateInRender = true;
           }
@@ -5244,15 +5257,15 @@ function warnIfUpdatesNotWrappedWithActDEV(fiber) {
       runWithFiberInDEV(fiber, () => {
         console.error(
           "An update to %s inside a test was not wrapped in act(...).\n\n" +
-            "When testing, code that causes React state updates should be " +
-            "wrapped into act(...):\n\n" +
-            "act(() => {\n" +
-            "  /* fire events that update state */\n" +
-            "});\n" +
-            "/* assert on the output */\n\n" +
-            "This ensures that you're testing the behavior the user would see " +
-            "in the browser." +
-            " Learn more at https://react.dev/link/wrap-tests-with-act",
+          "When testing, code that causes React state updates should be " +
+          "wrapped into act(...):\n\n" +
+          "act(() => {\n" +
+          "  /* fire events that update state */\n" +
+          "});\n" +
+          "/* assert on the output */\n\n" +
+          "This ensures that you're testing the behavior the user would see " +
+          "in the browser." +
+          " Learn more at https://react.dev/link/wrap-tests-with-act",
           getComponentNameFromFiber(fiber),
         );
       });
@@ -5269,16 +5282,16 @@ function warnIfSuspenseResolutionNotWrappedWithActDEV(root) {
     ) {
       console.error(
         "A suspended resource finished loading inside a test, but the event " +
-          "was not wrapped in act(...).\n\n" +
-          "When testing, code that resolves suspended data should be wrapped " +
-          "into act(...):\n\n" +
-          "act(() => {\n" +
-          "  /* finish loading suspended data */\n" +
-          "});\n" +
-          "/* assert on the output */\n\n" +
-          "This ensures that you're testing the behavior the user would see " +
-          "in the browser." +
-          " Learn more at https://react.dev/link/wrap-tests-with-act",
+        "was not wrapped in act(...).\n\n" +
+        "When testing, code that resolves suspended data should be wrapped " +
+        "into act(...):\n\n" +
+        "act(() => {\n" +
+        "  /* finish loading suspended data */\n" +
+        "});\n" +
+        "/* assert on the output */\n\n" +
+        "This ensures that you're testing the behavior the user would see " +
+        "in the browser." +
+        " Learn more at https://react.dev/link/wrap-tests-with-act",
       );
     }
   }

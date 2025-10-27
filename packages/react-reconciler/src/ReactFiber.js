@@ -324,7 +324,7 @@ export function createWorkInProgress(current, pendingProps) {
 
     workInProgress.alternate = current;
     current.alternate = workInProgress;
-  } else {
+  } else { // 复用之前的 fiber
     workInProgress.pendingProps = pendingProps;
     // Needed because Blocks store data on type.
     workInProgress.type = current.type;

@@ -667,7 +667,7 @@ export function includesIdleGroupLanes(lanes) {
         IdleLane |
         OffscreenLane |
         DeferredLane)) !==
-      NoLanes
+    NoLanes
   );
 }
 

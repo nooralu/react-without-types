@@ -4,6 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>React source debug</title>
+  <style>
+    .component {
+      border: 1px solid #ccc;
+      padding: 10px;
+      display: flex;
+      margin: 10px;
+      align-items: flex-start;
+    }
+    .component::before {
+      content: attr(data-name);
+    }
+  </style>
 </head>
 <body>
   <div id="root"></div>

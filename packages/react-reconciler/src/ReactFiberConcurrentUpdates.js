@@ -190,6 +190,7 @@ function markUpdateLaneFromFiberToRoot(
 ) {
   // Update the source fiber's lanes
   sourceFiber.lanes = mergeLanes(sourceFiber.lanes, lane);
+  console.debug("set lanes to ", sourceFiber.lanes, " for ", sourceFiber);
   let alternate = sourceFiber.alternate;
   // 注意，当前 fiber 和备用 fiber 的 lanes 都被更新了
   // 记住我们提到过 dispatchSetState() 是绑定到源 fiber 的

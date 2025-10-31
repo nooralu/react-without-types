@@ -4072,6 +4072,7 @@ function beginWork(
     const oldProps = current.memoizedProps;
     const newProps = workInProgress.pendingProps;
 
+    // 检查 props 或者 context 是否更新
     if (
       oldProps !== newProps ||
       hasLegacyContextChanged() ||
@@ -4088,6 +4089,7 @@ function beginWork(
         current,
         renderLanes,
       );
+      // 检查是否安排了更新
       if (
         !hasScheduledUpdateOrContext &&
         // If this is the second pass of an error or suspense boundary, there
@@ -4096,6 +4098,8 @@ function beginWork(
       ) {
         // No pending updates or context. Bail out now.
         didReceiveUpdate = false;
+        // 直接 return，不走 update
+        // 它的返回值决定了 performanceUnitWork 下一步处理哪个 fiber
         return attemptEarlyBailoutIfNoScheduledUpdate(
           current,
           workInProgress,
